@@ -4,15 +4,17 @@ import 'package:instagram_clone/screens/feed/ui/feed_header.dart';
 import 'package:instagram_clone/screens/feed/ui/feed_trailer.dart';
 
 class FeedPost extends StatelessWidget {
-  const FeedPost({super.key});
+  const FeedPost({super.key, this.length = 1});
+
+  final int length;
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       children: [
-        FeedHeader(),
-        FeedContent(),
-        FeedTrailer(),
+        const FeedHeader(),
+        FeedContent(length: length),
+        const FeedTrailer(),
       ],
     );
   }

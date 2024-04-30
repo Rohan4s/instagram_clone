@@ -9,20 +9,7 @@ class FeedScreen extends StatelessWidget {
     return Scaffold(
       body: ListView(
         children: const [
-          FeedPost(),
-          FeedPost(),
-          FeedPost(),
-          FeedPost(),
-          FeedPost(),
-          FeedPost(),
-          FeedPost(),
-          FeedPost(),
-          FeedPost(),
-          FeedPost(),
-          FeedPost(),
-          FeedPost(),
-          FeedPost(),
-          FeedPost(),
+          FeedPost(length: 5),
           FeedPost(),
         ],
       ),
