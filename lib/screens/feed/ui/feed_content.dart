@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:instagram_clone/styles/assets.dart';
 
 class FeedContent extends StatefulWidget {
   const FeedContent({
@@ -17,9 +15,8 @@ class FeedContent extends StatefulWidget {
 class _FeedContentState extends State<FeedContent>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  final ValueNotifier<int> index = ValueNotifier<int>(0);
-
-  // late final double maxWidth;
+  int index = 0;
+  double _posX = 0;
 
   @override
   void initState() {
@@ -42,68 +39,109 @@ class _FeedContentState extends State<FeedContent>
   @override
   Widget build(BuildContext context) {
     final maxWidth = MediaQuery.of(context).size.width;
+    _controller.value = 0;
+    print('Posx: $_posX');
+    return Stack(
+      children: [
+        ..._backgroundContents(maxWidth),
+        _foregroundContent(maxWidth),
+      ],
+    );
+  }
+
+  Widget _positioned(Widget child, double offset) {
+    return Transform(
+      transform: Matrix4.identity()..translate(offset),
+      child: child,
+    );
+  }
+
+  List<Widget> _backgroundContents(double maxWidth) {
+    List<Widget> contents = [];
+    for (int i = 0; i < widget.length; i++) {
+      if (i - index <= 1 && i - index >= -1) {
+        continue;
+      } else if (i > index) {
+        contents.add(_positioned(_content(i), maxWidth));
+      } else if (i < index) {
+        contents.add(_positioned(_content(i), -maxWidth));
+      }
+    }
+    return contents.reversed.toList();
+  }
+
+  Widget _foregroundContent(double maxWidth) {
+    List<Widget> contents = [];
+    int start, cnt;
+    if (index == 0) {
+      start = 0;
+      cnt = 2;
+    } else {
+      start = index - 1;
+      cnt = 3;
+    }
+    for (int i = start; i < start + cnt; i++) {
+      contents.add(_positioned(_content(i), (i - index) * maxWidth));
+    }
+
+    print('Foreground: $index');
     return GestureDetector(
-      onHorizontalDragUpdate: (details) {
-        if (index == 0 && details.delta.dx > 0) return;
-        double dx = details.delta.dx;
-        print(dx);
-        _controller.value += dx / maxWidth;
-      },
-      onHorizontalDragEnd: (details) {
-        if (_controller.value >= 0.5) {
-          _controller.animateTo(1);
-          index.value++;
-        } else if (_controller.value <= -0.5) {
-          _controller.animateTo(-1);
-          index.value--;
-        } else {
-          _controller.animateTo(0);
+      onPanStart: (details) => _posX = 0,
+      onPanUpdate: (details) {
+        final dx = details.delta.dx / maxWidth;
+        print(dx + _controller.value);
+        if (index == 0 && _controller.value + dx > 0) {
+          return;
         }
+        if (index == widget.length - 1 && _controller.value + dx < 0) {
+          return;
+        }
+        setState(() {
+          _posX += dx;
+        });
       },
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          return ValueListenableBuilder<int>(
-            valueListenable: index,
-            builder: (context, value, child) {
-              return Stack(
-                children: List.generate(
-                  widget.length,
-                  (cur) {
-                    int curIndex = widget.length - 1 - cur;
-                    print(curIndex);
-                    if (curIndex == value) {
-                      return Transform(
-                        transform: Matrix4.identity()
-                          ..translate((_controller.value) * maxWidth),
-                        child: Image.network(Assets.demoUserImage),
-                      );
-                    } else if (curIndex == value + 1) {
-                      return Transform(
-                        transform: Matrix4.identity()
-                          ..translate(
-                              maxWidth + (_controller.value) * maxWidth),
-                        child: Image.network(Assets.demoUserImage),
-                      );
-                    } else if (curIndex == value - 1) {
-                      return Transform(
-                        transform: Matrix4.identity()
-                          ..translate(
-                              -maxWidth + (_controller.value) * maxWidth),
-                        child: Image.network(
-                          Assets.demoUserImage,
-                        ),
-                      );
-                    } else {
-                      return const SizedBox();
-                    }
-                  },
-                ),
-              );
-            },
-          );
-        },
+      onPanEnd: (details) {
+        if (_posX > 0.5) {
+          _posX += 1;
+          setState(() {
+            index++;
+          });
+        } else if (_posX < -0.5) {
+          _posX -= 1;
+          setState(() {
+            index--;
+          });
+        } else {
+          _posX = 0;
+        }
+        setState(() {});
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 400),
+        transform: Matrix4.identity()..translate(_posX, 0),
+        child: _content(index),
       ),
+      // child: AnimatedBuilder(
+      //   animation: _controller,
+      //   builder: (context, child) {
+      //     return Transform(
+      //       transform: Matrix4.identity()
+      //         ..translate(_controller.value * maxWidth),
+      //       child: child,
+      //     );
+      //   },
+      //   child: _content(index),
+      // ),
+    );
+  }
+
+  Widget _content(int index) {
+    print('Index: $index');
+    return Container(
+      width: double.infinity,
+      height: 200,
+      color: index % 2 == 1 ? Colors.blue : Colors.red,
+      child: Center(child: Text('Index: $index')),
     );
   }
 }

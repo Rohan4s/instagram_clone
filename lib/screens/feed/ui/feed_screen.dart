@@ -10,7 +10,7 @@ class FeedScreen extends StatelessWidget {
       body: ListView(
         children: const [
           FeedPost(length: 5),
-          FeedPost(),
+          // FeedPost(),
         ],
       ),
     );
